@@ -57,6 +57,9 @@
             font-size: 0.9em;
             margin-top: 5px;
         }
+        .success {
+            color: green;
+        }
 
         button[type="submit"] {
             background-color: #007bff;
@@ -99,6 +102,10 @@
         <p th:text="${errorRegistro}"></p>
     </div>
 
+    <div th:if="${registroExitoso}" class="message success">
+        <p th:text="${registroExitoso}"></p>
+    </div>
+
     <form th:action="@{/registro}" th:object="${usuario}" method="post">
         <div class="form-group">
             <label for="username">Nombre de Usuario:</label>
@@ -121,4 +128,4 @@
     <p class="link">¿Ya tienes una cuenta? <a th:href="@{/login}">Inicia sesión aquí</a></p>
 </div>
 </body>
-</html>
+</html>'

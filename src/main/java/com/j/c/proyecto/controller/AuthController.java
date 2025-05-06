@@ -21,7 +21,11 @@ public class AuthController {
     }
 
     @GetMapping("/registro")
-    public String mostrarFormularioRegistro(Model model) {
+    public String mostrarFormularioRegistro(@RequestParam(value = "registroExitoso", required = false) String registroExitoso,
+                                            Model model) {
+        if (registroExitoso != null) {
+            model.addAttribute("registroExitoso", "Te has registrado exitosamente.");
+        }
         model.addAttribute("usuario", new RegistroDTO());
         return "registro";
     }
@@ -33,7 +37,7 @@ public class AuthController {
         }
         try {
             authService.registrarUsuario(registroDTO);
-            return "redirect:/login?registroExitoso"; // Redirige a la página de inicio de sesión con un mensaje de éxito
+            return "redirect:/registro?registroExitoso"; // manda un mensaje de éxito
         } catch (Exception e) {
             model.addAttribute("errorRegistro", e.getMessage());
             return "registro"; // Vuelve a mostrar el formulario con un mensaje de error
@@ -42,17 +46,9 @@ public class AuthController {
 
     @GetMapping("/login")
     public String mostrarFormularioLogin(@RequestParam(value = "error", required = false) String error,
-                                         @RequestParam(value = "logout", required = false) String logout,
-                                         @RequestParam(value = "registroExitoso", required = false) String registroExitoso,
                                          Model model) {
         if (error != null) {
             model.addAttribute("error", "Nombre de usuario o contraseña incorrectos");
-        }
-        if (logout != null) {
-            model.addAttribute("logout", "Has cerrado sesión exitosamente");
-        }
-        if (registroExitoso != null) {
-            model.addAttribute("registroExitoso", "Te has registrado exitosamente. ¡Inicia sesión!");
         }
         return "login";
     }

@@ -33,6 +33,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        System.out.println("Rol del Administrador: " + rol.name());
         return List.of(new SimpleGrantedAuthority(rol.name()));
     }
 
