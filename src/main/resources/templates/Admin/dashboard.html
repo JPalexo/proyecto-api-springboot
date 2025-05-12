@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #333; /* Fondo oscuro */
+            color: #eee; /* Texto claro */
+        }
+        nav {
+            background-color: #222; /* Fondo de la barra de navegación */
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+        }
+        .logo-container {
+            position: relative;
+        }
+        .logo-container:hover .logout-menu {
+            display: block;
+        }
+        .logo {
+            margin-right: 30px;
+            cursor: pointer; /* Indica que es interactivo */
+        }
+        .logo img {
+            height: 60px; /* Ajusta el tamaño del logo */
+        }
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #444;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10; /* Asegura que esté por encima de otros elementos */
+        }
+        .logout-menu li a {
+            display: block;
+            color: #eee;
+            text-decoration: none;
+            padding: 10px 15px;
+            transition: background-color 0.3s ease;
+            white-space: nowrap; /* Evita que el texto se rompa */
+            font-size: 1.1em;
+        }
+        .logout-menu li a:hover {
+            background-color: #666;
+        }
+        .menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+        .menu-item {
+            position: relative;
+        }
+        .menu-link {
+            display: block;
+            color: #eee;
+            text-decoration: none;
+            padding: 10px 15px;
+            transition: background-color 0.3s ease;
+            font-size: 1.2em; /* Aumento de aproximadamente 4 puntos (1em base es generalmente 16px) */
+        }
+        .menu-link:hover {
+            background-color: #555;
+        }
+        .submenu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #444;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10; /* Asegura que esté por encima de otros elementos */
+        }
+        .submenu-item a {
+            display: block;
+            color: #eee;
+            text-decoration: none;
+            padding: 10px 15px;
+            transition: background-color 0.3s ease;
+            white-space: nowrap; /* Evita que el texto se rompa */
+            font-size: 1.1em; /* Aumento similar para las opciones del submenu */
+        }
+        .submenu-item a:hover {
+            background-color: #666;
+        }
+        .menu-item:hover .submenu {
+            display: block;
+        }
+        .container {
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 960px;
+            background-color: #444;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            color: #eee;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        /* Estilos adicionales para el contenido principal si es necesario */
+    </style>
+</head>
+<body>
+<nav>
+    <div class="logo-container">
+        <div class="logo">
+            <img th:src="@{/images/logo-jc.png}" alt="Logo J&C"/>
+        </div>
+        <ul class="logout-menu">
+            <li><a th:href="@{/logout}">Cerrar Sesión</a></li>
+        </ul>
+    </div>
+    <ul class="menu">
+        <li class="menu-item">
+            <a href="#" class="menu-link">Estadísticas</a>
+            <ul class="submenu">
+                <li class="submenu-item"><a href="/admin/reportes-ventas">Reportes de ventas</a></li>
+                <li class="submenu-item"><a href="/admin/estadisticas-uso">Estadísticas de uso</a></li>
+            </ul>
+        </li>
+        <li class="menu-item">
+            <a href="#" class="menu-link">Rutas y tarifas</a>
+            <ul class="submenu">
+                <li class="submenu-item"><a href="/admin/rutas">Administración de rutas</a></li>
+                <li class="submenu-item"><a href="/admin/tarifas">Configuración de tarifas</a></li>
+            </ul>
+        </li>
+        <li class="menu-item">
+            <a href="#" class="menu-link">Empleados</a>
+            <ul class="submenu">
+                <li class="submenu-item"><a href="/admin/registro">Registro de empleados</a></li>
+                <li class="submenu-item"><a href="/admin/administrar-empleados">Administrar empleados</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+
+<div class="container">
+    <h1>Panel de Administración</h1>
+    <p>Bienvenido al panel de administración. Aquí podrás gestionar las diferentes secciones del sistema.</p>
+</div>
+
+<footer>
+    <p style="text-align: center; color: #777; margin-top: 20px;">&copy; 2025 Sistema de Administración</p>
+</footer>
+
+<script>
+    // No se necesita JavaScript adicional para el funcionamiento básico del menú desplegable con CSS
+</script>
+</body>
+</html>

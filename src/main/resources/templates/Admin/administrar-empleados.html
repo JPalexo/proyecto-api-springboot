@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Empleados</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #333; /* Fondo oscuro */
+            color: #eee; /* Texto claro */
+            position: relative; /* Para posicionar el botón de regreso */
+            min-height: 100vh; /* Asegura que el fondo cubra toda la pantalla */
+            display: flex;
+            flex-direction: column; /* Para apilar el botón y el contenedor */
+            align-items: center; /* Centrar horizontalmente el contenedor */
+            padding-top: 60px; /* Espacio para el botón de regreso */
+            box-sizing: border-box; /* Incluir el padding en el cálculo del tamaño */
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #555;
+            color: #eee;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            z-index: 10; /* Asegura que esté por encima del contenido */
+        }
+
+        .back-button:hover {
+            background-color: #777;
+        }
+
+        .container {
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 960px;
+            background-color: #444; /* Contenedor más oscuro */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            color: #eee;
+            width: 90%; /* Ajustar ancho del contenedor */
+            box-sizing: border-box; /* Incluir padding y border en el ancho */
+        }
+
+        h1 {
+            color: #eee;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #555; /* Fondo de la tabla oscuro */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            color: #eee; /* Texto de la tabla claro */
+        }
+
+        th, td {
+            border: 1px solid #666; /* Bordes de la tabla más oscuros */
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #444; /* Encabezado de la tabla más oscuro */
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #666; /* Filas pares ligeramente más claras */
+        }
+    </style>
+</head>
+<body>
+<a href="/admin/dashboard" class="back-button">Volver</a>
+
+<div class="container">
+    <h1>Administrar Empleados</h1>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Rol</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="usuario : ${usuarios}">
+            <td th:text="${usuario.id}"></td>
+            <td th:text="${usuario.username}"></td>
+            <td th:text="${usuario.email}"></td>
+            <td th:text="${usuario.rol}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
