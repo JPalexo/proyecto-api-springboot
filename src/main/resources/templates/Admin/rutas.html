@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administración de Rutas</title>
+  <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        background-color: #333;
+        color: #eee;
+        padding-top: 70px; /* Espacio para el botón de volver */
+        position: relative;
+    }
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background-color: #555;
+        color: #eee;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        z-index: 10;
+    }
+    .back-button:hover {
+        background-color: #777;
+    }
+    .container {
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 800px;
+        background-color: #444;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    h1, h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .form-container, .table-container {
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: #505050;
+        border-radius: 5px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-group input[type="text"] {
+        width: calc(100% - 22px);
+        padding: 10px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: #333;
+        color: #eee;
+    }
+    .error-message {
+        color: #ff6b6b; /* Rojo claro para errores */
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .success-message {
+        color: #63e6be; /* Verde claro para éxito */
+        padding: 10px;
+        background-color: #2b2b2b;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    button[type="submit"] {
+        background-color: #5cb85c; /* Verde */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s ease;
+    }
+    button[type="submit"]:hover {
+        background-color: #4cae4c;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #555;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+        border: 1px solid #666;
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #444;
+    }
+    tr:nth-child(even) {
+        background-color: #606060;
+    }
+  .delete-button {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+  </style>
+  <script>
+    function confirmarEliminar(id) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta ruta?')) {
+            document.getElementById('eliminarForm-' + id).submit();
+        }
+    }
+  </script>
+</head>
+<body>
+<a href="/admin/dashboard" class="back-button">Volver</a>
+
+<div class="container">
+  <h1>Administración de Rutas</h1>
+
+  <div class="form-container">
+    <h2>Agregar Nueva Ruta</h2>
+    <div th:if="${mensajeExito}" class="success-message" th:text="${mensajeExito}"></div>
+    <div th:if="${errorGuardado}" class="error-message" th:text="${errorGuardado}" style="background-color: #2b2b2b; padding: 10px; border-radius: 4px; text-align: center;"></div>
+
+    <form th:action="@{/admin/rutas}" th:object="${rutaDTO}" method="post">
+      <div class="form-group">
+        <label for="ciudad">Ciudad:</label>
+        <input type="text" id="ciudad" th:field="*{ciudad}" />
+        <p th:if="${#fields.hasErrors('ciudad')}" th:errors="*{ciudad}" class="error-message"></p>
+      </div>
+      <div class="form-group">
+        <label for="nombreRuta">Nombre de la Ruta:</label>
+        <input type="text" id="nombreRuta" th:field="*{nombreRuta}" />
+        <p th:if="${#fields.hasErrors('nombreRuta')}" th:errors="*{nombreRuta}" class="error-message"></p>
+      </div>
+      <button type="submit">Guardar Ruta</button>
+    </form>
+  </div>
+
+  <div class="table-container">
+    <h2>Rutas Existentes</h2>
+    <div th:if="${#lists.isEmpty(rutas)}">
+      <p>No hay rutas registradas.</p>
+    </div>
+    <table th:unless="${#lists.isEmpty(rutas)}">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Ciudad</th>
+        <th>Nombre de la Ruta</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="ruta : ${rutas}">
+        <td th:text="${ruta.id}"></td>
+        <td th:text="${ruta.ciudad}"></td>
+        <td th:text="${ruta.nombreRuta}"></td>
+        <td>
+          <form th:id="'eliminarForm-' + ${ruta.id}" th:action="@{/admin/rutas/eliminar/{id}(id=${ruta.id})}" method="post" style="display:inline;">
+            <button type="button" class="delete-button" th:onclick="'confirmarEliminar(' + ${ruta.id} + ')'">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

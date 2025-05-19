@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración de Tarifas</title>
+  <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        background-color: #333;
+        color: #eee;
+        padding-top: 70px;
+        position: relative;
+    }
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background-color: #555;
+        color: #eee;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        z-index: 10;
+    }
+    .back-button:hover {
+        background-color: #777;
+    }
+    .container {
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 800px;
+        background-color: #444;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    h1, h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .form-container, .table-container {
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: #505050;
+        border-radius: 5px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-group select, .form-group input[type="number"] {
+        width: calc(100% - 22px);
+        padding: 10px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: #333;
+        color: #eee;
+    }
+    .error-message, .success-message {
+        text-align: center;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    .error-message { background-color: #721c24; color: #f8d7da; }
+    .success-message { background-color: #155724; color: #d4edda; }
+    button[type="submit"] {
+        background-color: #007bff; /* Azul */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s ease;
+    }
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #555;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+        border: 1px solid #666;
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #444;
+    }
+    tr:nth-child(even) {
+        background-color: #606060;
+    }
+    .edit-price-form {
+        display: none; /* Ocultar los formularios de edición inicialmente */
+    }
+    .edit-price-input {
+        width: 80px;
+        padding: 5px;
+        border: 1px solid #777;
+        border-radius: 3px;
+        background-color: #333;
+        color: #eee;
+    }
+    .edit-button, .save-button, .cancel-button {
+        background-color: #ffc107; /* Amarillo */
+        color: #333;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background-color 0.3s ease;
+        margin-left: 5px;
+    }
+    .save-button { background-color: #28a745; color: white; } /* Verde */
+    .cancel-button { background-color: #dc3545; color: white; } /* Rojo */
+    .edit-button:hover { background-color: #e0a800; }
+    .save-button:hover { background-color: #218838; }
+    .price-cell {
+        display: flex;
+        align-items: center;
+    }
+  </style>
+</head>
+<body>
+<a href="/admin/dashboard" class="back-button">Volver</a>
+
+<div class="container">
+  <h1>Configuración de Tarifas</h1>
+
+  <div class="form-container">
+    <h2>Agregar Tarifa a Ruta</h2>
+    <div th:if="${mensajeExito}" class="success-message" th:text="${mensajeExito}"></div>
+    <div th:if="${errorGuardado}" class="error-message" th:text="${errorGuardado}"></div>
+    <form th:action="@{/admin/tarifas/guardar}" th:object="${tarifaDTO}" method="post">
+      <div class="form-group">
+        <label for="rutaId">Ruta:</label>
+        <select id="rutaId" th:field="*{rutaId}">
+          <option value="" disabled selected>Seleccionar Ruta</option>
+          <option th:each="ruta : ${rutasSinTarifa}" th:value="${ruta.id}" th:text="${ruta.nombreRuta} + ' (' + ${ruta.ciudad} + ')'"></option>
+        </select>
+        <p th:if="${#fields.hasErrors('rutaId')}" th:errors="*{rutaId}" class="error-message"></p>
+      </div>
+      <div class="form-group">
+        <label for="precio">Precio:</label>
+        <input type="number" step="0.01" id="precio" th:field="*{precio}" />
+        <p th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}" class="error-message"></p>
+      </div>
+      <button type="submit">Guardar Tarifa</button>
+    </form>
+  </div>
+
+  <div class="table-container">
+    <h2>Tarifas Configuradas</h2>
+    <div th:if="${#lists.isEmpty(tarifas)}">
+      <p>No hay tarifas configuradas.</p>
+    </div>
+    <table th:unless="${#lists.isEmpty(tarifas)}">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Ruta</th>
+        <th>Precio</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="tarifa : ${tarifas}">
+        <td th:text="${tarifa.id}"></td>
+        <td th:text="${tarifa.ruta.nombreRuta} + ' (' + ${tarifa.ruta.ciudad} + ')'"></td>
+        <td class="price-cell">
+                    <span th:id="'precio-' + ${tarifa.id}">
+                        <span th:text="${#numbers.formatDecimal(tarifa.precio, 0, 'COMMA', 2, 'POINT')}"></span>
+                        <button class="edit-button" th:onclick="'mostrarEditarPrecio(' + ${tarifa.id} + ')'">Editar</button>
+                    </span>
+          <form th:id="'form-editar-' + ${tarifa.id}" th:action="@{/admin/tarifas/actualizar/{rutaId}(rutaId=${tarifa.ruta.id})}" method="post" class="edit-price-form">
+            <input type="number" step="0.01" class="edit-price-input" name="precio" th:value="${tarifa.precio}" required />
+            <button type="submit" class="save-button">Guardar</button>
+            <button type="button" class="cancel-button" th:onclick="'ocultarEditarPrecio(' + ${tarifa.id} + ')'">Cancelar</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  function mostrarEditarPrecio(tarifaId) {
+      document.getElementById('precio-' + tarifaId).style.display = 'none';
+      document.getElementById('form-editar-' + tarifaId).style.display = 'inline-block';
+  }
+
+  function ocultarEditarPrecio(tarifaId) {
+      document.getElementById('precio-' + tarifaId).style.display = 'inline-block';
+      document.getElementById('form-editar-' + tarifaId).style.display = 'none';
+  }
+  /*]]>*/
+</script>
+
+</body>
+</html>

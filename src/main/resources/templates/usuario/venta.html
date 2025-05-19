@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página de Venta</title>
+  <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        background-color: #333;
+        color: #eee;
+        padding: 20px;
+    }
+    .logo-container {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+    }
+    .logo-container:hover .logout-menu {
+        display: block;
+    }
+    .logo {
+        cursor: pointer;
+    }
+    .logo img {
+        max-width: 50px;
+        height: auto;
+    }
+    .logout-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: #444;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+    }
+    .logout-menu li a {
+        display: block;
+        color: #eee;
+        text-decoration: none;
+        padding: 10px 15px;
+        transition: background-color 0.3s ease;
+        white-space: nowrap;
+        font-size: 1.1em;
+    }
+    .logout-menu li a:hover {
+        background-color: #666;
+    }
+    .container {
+        background-color: #444;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        margin: 80px auto 20px auto; /* Ajustar margen superior para el logo */
+        position: relative;
+    }
+    h1 {
+        color: #007bff;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #ddd;
+    }
+    .form-group select, .form-group input[type="number"] {
+        width: calc(100% - 22px);
+        padding: 10px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 1em;
+        background-color: #333;
+        color: #eee;
+    }
+    .output-group {
+        margin-bottom: 15px;
+        padding: 15px;
+        background-color: #555;
+        border-radius: 4px;
+    }
+    .output-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #ddd;
+    }
+    .output-group span {
+        font-size: 1.1em;
+        color: #28a745;
+    }
+    .error-message, .success-message {
+        text-align: center;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    .error-message { background-color: #721c24; color: #f8d7da; border: 1px solid #f5c6cb; }
+    .success-message { background-color: #155724; color: #d4edda; border: 1px solid #c3e6cb; }
+    button[type="submit"] {
+        background-color: #007bff;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: 100%;
+    }
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+<div class="logo-container">
+  <div class="logo">
+    <img th:src="@{/images/logo-jc.png}" alt="Logo J&C"/>
+  </div>
+  <ul class="logout-menu">
+    <li><a th:href="@{/logout}">Cerrar Sesión</a></li>
+  </ul>
+</div>
+<div class="container">
+  <h1>Registro de Venta</h1>
+
+  <div th:if="${mensajeExitoVenta}" class="success-message" th:text="${mensajeExitoVenta}"></div>
+  <div th:if="${errorVenta}" class="error-message" th:text="${errorVenta}"></div>
+
+  <form th:action="@{/usuario/obtener-rutas}" method="post" class="form-group">
+    <label for="ciudadSeleccionada">Seleccionar Ciudad:</label>
+    <select id="ciudadSeleccionada" name="ciudadSeleccionada" onchange="this.form.submit()">
+      <option value="" disabled selected>Seleccionar Ciudad</option>
+      <option th:each="ciudad : ${ciudades}" th:value="${ciudad}" th:text="${ciudad}"
+              th:selected="${ciudad == ciudadSeleccionada}"></option>
+    </select>
+  </form>
+
+  <div th:if="${ciudadSeleccionada != null}">
+    <form th:action="@{/usuario/obtener-tarifa}" method="post" class="form-group">
+      <label for="rutaSeleccionada">Seleccionar Ruta:</label>
+      <select id="rutaSeleccionada" name="rutaSeleccionada" onchange="this.form.submit()">
+        <option value="" disabled selected>Seleccionar Ruta</option>
+        <option th:each="ruta : ${rutas}" th:value="${ruta.id}" th:text="${ruta.nombreRuta}"
+                th:selected="${ruta.id == rutaSeleccionadaId}"></option>
+      </select>
+      <input type="hidden" name="ciudadSeleccionada" th:value="${ciudadSeleccionada}" />
+    </form>
+  </div>
+
+  <div th:if="${tarifa != null}" class="output-group">
+    <label>Tarifa de la Ruta:</label>
+    <span th:text="${#numbers.formatDecimal(tarifa, 0, 'COMMA', 2, 'POINT')}"></span>
+  </div>
+
+  <form th:if="${tarifa != null}" th:action="@{/usuario/calcular-cambio}" method="post" class="form-group">
+    <label for="montoRecibido">Monto Recibido:</label>
+    <input type="number" step="0.01" id="montoRecibido" name="montoRecibido" required />
+    <input type="hidden" name="rutaSeleccionadaId" th:value="${rutaSeleccionadaId}" />
+    <input type="hidden" name="ciudadSeleccionada" th:value="${ciudadSeleccionada}" />
+    <button type="submit">Calcular Cambio</button>
+  </form>
+
+  <div th:if="${cambio != null}" class="output-group">
+    <label>Cambio a Entregar:</label>
+    <span th:text="${#numbers.formatDecimal(cambio, 0, 'COMMA', 2, 'POINT')}"></span>
+  </div>
+
+  <form th:if="${cambio != null}" th:action="@{/usuario/registrar-venta}" method="post">
+    <input type="hidden" name="rutaSeleccionadaId" th:value="${rutaSeleccionadaId}" />
+    <input type="hidden" name="montoRecibido" th:value="${montoRecibido}" />
+    <input type="hidden" name="ciudadSeleccionada" th:value="${ciudadSeleccionada}" />
+    <button type="submit">Registrar Venta</button>
+  </form>
+
+</div>
+</body>
+</html>
