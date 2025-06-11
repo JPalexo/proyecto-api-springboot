@@ -1,6 +1,9 @@
 package com.j.c.proyecto.service;
 
 import com.j.c.proyecto.dto.RutaDTO;
+import com.j.c.proyecto.exception.RutaEnUsoException;
+import com.j.c.proyecto.exception.RutaExistenteException;
+import com.j.c.proyecto.exception.RutaNoEncontradaException;
 import com.j.c.proyecto.model.Ruta;
 import com.j.c.proyecto.repository.RutaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +24,19 @@ public class RutaService {
     }
 
     @Transactional
-    public Ruta guardarRuta(RutaDTO rutaDTO) throws Exception {
-        Optional<Ruta> rutaExistente = rutaRepository.findByCiudadAndNombreRuta(rutaDTO.getCiudad(), rutaDTO.getNombreRuta());
+    public Ruta guardarRuta(RutaDTO rutaDTO) {
+        Optional<Ruta> rutaExistente = rutaRepository.findByCiudadAndNombreRuta(
+                rutaDTO.getCiudad(),
+                rutaDTO.getNombreRuta()
+        );
+
         if (rutaExistente.isPresent()) {
-            throw new Exception("Ya existe una ruta con la misma ciudad y nombre.");
+            throw new RutaExistenteException(
+                    rutaDTO.getCiudad(),
+                    rutaDTO.getNombreRuta()
+            );
         }
+
         Ruta nuevaRuta = new Ruta();
         nuevaRuta.setCiudad(rutaDTO.getCiudad());
         nuevaRuta.setNombreRuta(rutaDTO.getNombreRuta());
@@ -37,14 +48,22 @@ public class RutaService {
     }
 
     @Transactional
-    public void eliminarRuta(Long id) throws Exception {
-        Optional<Ruta> rutaOptional = rutaRepository.findById(id);
-        if (rutaOptional.isPresent()) {
-            // Aquí podrías agregar lógica para verificar si la ruta está siendo utilizada
-            // por alguna tarifa antes de eliminarla, y lanzar una excepción si es así.
-            rutaRepository.deleteById(id);
-        } else {
-            throw new Exception("No se encontró la ruta con el ID: " + id);
+    public void eliminarRuta(Long id) {
+        Ruta ruta = rutaRepository.findById(id)
+                .orElseThrow(() -> new RutaNoEncontradaException(id));
+
+        // Verificar si la ruta está siendo utilizada
+        if (rutaEstaEnUso(ruta)) {
+            throw new RutaEnUsoException(id);
         }
+
+        rutaRepository.delete(ruta);
+    }
+
+    private boolean rutaEstaEnUso(Ruta ruta) {
+        // Implementa la lógica para verificar si la ruta está siendo usada
+        // Por ejemplo, verificar si hay ventas o tarifas asociadas
+        // return ventaRepository.existsByRuta(ruta) || tarifaRepository.existsByRuta(ruta);
+        return false; // Cambiar por implementación real
     }
 }

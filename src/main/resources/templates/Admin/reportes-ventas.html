@@ -10,21 +10,53 @@
         margin: 0;
         background-color: #333;
         color: #eee;
-        padding: 20px;
+        /* Eliminamos padding del body para que la nav ocupe todo el ancho */
     }
+    .navbar {
+        background-color: #222; /* Color de fondo de la barra de navegación */
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; /* Alinea los elementos al inicio */
+        position: sticky; /* O fixed si quieres que siempre esté visible */
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background-color: #555;
+        color: #eee;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        z-index: 10;
+    }
+    .back-button:hover {
+        background-color: #0056b3;
+    }
+    .navbar h1 {
+        color: #007bff;
+        margin: 0 auto; /* Centra el título en la barra de navegación */
+        text-align: center;
+        flex-grow: 1; /* Permite que el título ocupe el espacio restante */
+    }
+    /* Ajustar el contenedor principal para que no se solape con la navbar */
     .container {
         max-width: 800px;
-        margin: 20px auto;
+        margin: 20px auto; /* Mantener margen auto para centrar */
         background-color: #444;
         padding: 30px;
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     }
-    h1 {
-        color: #007bff;
-        text-align: center;
-        margin-bottom: 20px;
-    }
+    /* ... el resto de tus estilos CSS existentes ... */
     .form-group {
         margin-bottom: 20px;
     }
@@ -78,26 +110,26 @@
         background-color: #666;
         color: #eee;
     }
-    .back-button {
-        display: block;
-        margin-top: 20px;
-        color: #007bff;
-        text-decoration: none;
-        font-size: 1em;
-        transition: color 0.3s ease;
-    }
-    .back-button:hover {
-        color: #0056b3;
+    .error-message {
+        color: #ff6b6b;
+        margin-bottom: 15px;
+        text-align: center;
     }
   </style>
 </head>
 <body>
-<div class="container">
+<nav class="navbar">
+  <a th:href="@{/admin/dashboard}" class="back-button">Volver</a>
   <h1>Reportes de Ventas</h1>
+</nav>
+
+<div class="container">
+  <div th:if="${error}" class="error-message" th:text="${error}"></div>
 
   <form th:action="@{/admin/generar-reporte}" method="post" class="form-group">
     <label for="tipoReporte">Tipo de Reporte:</label>
-    <select id="tipoReporte" name="tipoReporte">
+    <select id="tipoReporte" name="tipoReporte" required>
+      <option value="">Seleccione un tipo</option>
       <option value="diario">Diario</option>
       <option value="semanal">Semanal</option>
       <option value="mensual">Mensual</option>
@@ -117,44 +149,121 @@
 
   <div th:if="${reporte != null}" class="report-output">
     <h2>Resultado del Reporte</h2>
+    <div th:if="${tipoReporte != null}">
+      <p><strong>Tipo:</strong> <span th:text="${tipoReporte}"></span></p>
+      <p th:if="${fechaInicio != null}"><strong>Período:</strong>
+        <span th:text="${fechaInicio}"></span> al <span th:text="${fechaFin}"></span>
+      </p>
+    </div>
+
     <table th:if="${not reporte.isEmpty()}">
       <thead>
       <tr>
         <th>ID Venta</th>
         <th>Fecha y Hora</th>
-        <th>ID Ruta</th>
-        <th>Nombre Ruta</th>
+        <th>Ruta</th>
+        <th>Tarifa</th>
         <th>Monto Recibido</th>
+        <th>Cambio</th>
       </tr>
       </thead>
       <tbody>
       <tr th:each="venta : ${reporte}">
         <td th:text="${venta.id}"></td>
-        <td th:text="${#temporals.format(venta.fechaHora, 'yyyy-MM-dd HH:mm:ss')}"></td>
-        <td th:text="${venta.ruta.id}"></td>
+        <td th:text="${#temporals.format(venta.fechaVenta, 'dd/MM/yyyy HH:mm')}"></td>
         <td th:text="${venta.ruta.nombreRuta}"></td>
-        <td th:text="${#numbers.formatDecimal(venta.montoRecibido, 0, 'COMMA', 2, 'POINT')}"></td>
+        <td th:text="${#numbers.formatDecimal(venta.tarifa, 1, 'COMMA', 2, 'POINT')} + ' MXN'"></td>
+        <td th:text="${#numbers.formatDecimal(venta.montoRecibido, 1, 'COMMA', 2, 'POINT')} + ' MXN'"></td>
+        <td th:text="${#numbers.formatDecimal(venta.cambio, 1, 'COMMA', 2, 'POINT')} + ' MXN'"></td>
       </tr>
       </tbody>
     </table>
-    <p th:unless="${not reporte.isEmpty()}">No se encontraron ventas para el filtro seleccionado.</p>
+    <p th:if="${reporte != null and reporte.isEmpty()}">No se encontraron ventas para el filtro seleccionado.</p>
   </div>
-
-  <a th:href="@{/admin/dashboard}" class="back-button">Volver al Dashboard</a>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
       const tipoReporteSelect = document.getElementById('tipoReporte');
       const fechasRangoDiv = document.getElementById('fechasRango');
+      const fechaInicioInput = document.getElementById('fechaInicio');
+      const fechaFinInput = document.getElementById('fechaFin');
+
+      // Establecer valores por defecto para las fechas
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      fechaInicioInput.value = todayStr;
+      fechaFinInput.value = todayStr;
 
       tipoReporteSelect.addEventListener('change', function() {
           if (this.value === 'rango') {
               fechasRangoDiv.style.display = 'block';
+              fechaInicioInput.setAttribute('required', 'required');
+              fechaFinInput.setAttribute('required', 'required');
           } else {
               fechasRangoDiv.style.display = 'none';
+              fechaInicioInput.removeAttribute('required');
+              fechaFinInput.removeAttribute('required');
+
+              // Calcular fechas según el tipo de reporte
+              const startDate = new Date(); // Resetear a la fecha actual para cada cálculo
+
+              switch(this.value) {
+                  case 'diario':
+                      fechaInicioInput.value = todayStr;
+                      fechaFinInput.value = todayStr;
+                      break;
+                  case 'semanal':
+                      // Día de la semana (0 = domingo, 1 = lunes, etc.)
+                      const currentDay = today.getDay();
+                      // Ajustar para que la semana empiece en Lunes (si domingo es 0, restar 6)
+                      const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+                      startDate.setDate(diff); // Establece el primer día de la semana (lunes)
+                      fechaInicioInput.value = startDate.toISOString().split('T')[0];
+                      fechaFinInput.value = todayStr;
+                      break;
+                  case 'mensual':
+                      startDate.setDate(1); // Primer día del mes
+                      fechaInicioInput.value = startDate.toISOString().split('T')[0];
+                      fechaFinInput.value = todayStr; // Hasta hoy
+                      break;
+                  case 'anual':
+                      startDate.setMonth(0, 1); // Primer día del año (enero 1)
+                      fechaInicioInput.value = startDate.toISOString().split('T')[0];
+                      fechaFinInput.value = todayStr; // Hasta hoy
+                      break;
+                  default:
+                      // Si no hay tipo de reporte seleccionado, limpiar fechas
+                      fechaInicioInput.value = '';
+                      fechaFinInput.value = '';
+                      break;
+              }
           }
       });
+
+      // Validación antes de enviar el formulario
+      document.querySelector('form').addEventListener('submit', function(e) {
+          // Solo valida el rango de fechas si el tipo de reporte es 'rango'
+          if (tipoReporteSelect.value === 'rango') {
+              const inicio = new Date(fechaInicioInput.value);
+              const fin = new Date(fechaFinInput.value);
+
+              if (fin < inicio) {
+                  alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+                  e.preventDefault();
+                  return false;
+              }
+          } else if (tipoReporteSelect.value === '') {
+              // Si no se ha seleccionado un tipo de reporte
+              alert('Por favor, seleccione un tipo de reporte.');
+              e.preventDefault();
+              return false;
+          }
+          return true;
+      });
+
+      // Inicializar el estado del formulario al cargar la página
+      tipoReporteSelect.dispatchEvent(new Event('change'));
   });
 </script>
 </body>

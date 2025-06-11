@@ -44,9 +44,9 @@ public class VentaService {
         ventaRepository.save(venta);
     }
 
-    public List<Venta> obtenerTodasLasVentas() {
-        return ventaRepository.findAll();
+    public List<Venta> obtenerVentasPorFecha(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
     }
 
-    // Métodos para reportes de venta se agregarán aquí en el futuro
+
 }

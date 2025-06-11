@@ -8,6 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface RutaRepository extends JpaRepository<Ruta, Long> {
-    // Podrías agregar métodos para buscar rutas si es necesario, por ejemplo:
     Optional<Ruta> findByCiudadAndNombreRuta(String ciudad, String nombreRuta);
 }
