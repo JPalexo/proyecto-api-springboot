@@ -1,5 +1,6 @@
 package com.j.c.proyecto.service;
 
+import com.j.c.proyecto.exception.*;
 import com.j.c.proyecto.model.Ruta;
 import com.j.c.proyecto.model.Venta;
 import com.j.c.proyecto.repository.RutaRepository;
@@ -25,28 +26,38 @@ public class VentaService {
     }
 
     @Transactional
-    public void registrarVenta(Long rutaId, BigDecimal montoRecibido) throws Exception {
-        Ruta ruta = rutaRepository.findById(rutaId)
-                .orElseThrow(() -> new Exception("No se encontró la ruta con ID: " + rutaId));
-
-        // Verificar si la ruta tiene una tarifa configurada (esto podría estar en TarifaService)
-        if (ruta.getTarifas() == null || ruta.getTarifas().isEmpty()) {
-            throw new Exception("La ruta " + ruta.getNombreRuta() + " no tiene una tarifa configurada.");
+    public Venta registrarVenta(Long rutaId, BigDecimal montoRecibido) {
+        // Validar monto positivo
+        if (montoRecibido.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new MontoInsuficienteException(montoRecibido, BigDecimal.ZERO);
         }
-        BigDecimal tarifa = ruta.getTarifas().get(0).getPrecio(); // Asumiendo una tarifa por ruta
 
+        Ruta ruta = rutaRepository.findById(rutaId)
+                .orElseThrow(() -> new RutaNoEncontradaException(rutaId));
+
+        // Verificar tarifa configurada
+        if (ruta.getTarifas() == null || ruta.getTarifas().isEmpty()) {
+            throw new TarifaNoConfiguradaException(ruta.getNombreRuta());
+        }
+
+        BigDecimal tarifa = ruta.getTarifas().get(0).getPrecio();
+
+        // Validar monto suficiente
         if (montoRecibido.compareTo(tarifa) < 0) {
-            throw new Exception("El monto recibido es insuficiente.");
+            throw new MontoInsuficienteException(montoRecibido, tarifa);
         }
 
         BigDecimal cambio = montoRecibido.subtract(tarifa);
         Venta venta = new Venta(ruta, tarifa, montoRecibido, cambio);
-        ventaRepository.save(venta);
+        return ventaRepository.save(venta);
     }
 
     public List<Venta> obtenerVentasPorFecha(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        // Validar que fechaFin no sea anterior a fechaInicio
+        if (fechaFin.isBefore(fechaInicio)) {
+            throw new FechaInvalidaException("La fecha final no puede ser anterior a la fecha inicial");
+        }
+
         return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
     }
-
-
 }

@@ -1,5 +1,7 @@
 package com.j.c.proyecto.security;
 
+import com.j.c.proyecto.exception.AuthenticationRedirectException;
+import com.j.c.proyecto.exception.RolInvalidoException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
@@ -16,15 +18,19 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        @NotNull Authentication authentication) throws IOException {
+                                        @NotNull Authentication authentication) {
+        try {
+            Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
 
-        Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
-        if (roles.contains("ADMIN")) {
-            response.sendRedirect("/admin/dashboard"); // Redirige a la página de administración
-        } else if (roles.contains("USUARIO")) {
-            response.sendRedirect("/usuario/venta"); // Redirige a la página de usuario
-        } else {
-            response.sendRedirect("/"); // Redirige a la página de inicio por defecto
+            if (roles.contains("ADMIN")) {
+                response.sendRedirect("/admin/dashboard");
+            } else if (roles.contains("USUARIO")) {
+                response.sendRedirect("/usuario/venta");
+            } else {
+                throw new RolInvalidoException(roles.toString());
+            }
+        } catch (IOException e) {
+            throw new AuthenticationRedirectException("Error en redirección", e);
         }
     }
 }
