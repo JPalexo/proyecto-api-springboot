@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Descuentos</title>
+  <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        background-color: #333;
+        color: #eee;
+        padding-top: 70px;
+        position: relative;
+    }
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background-color: #555;
+        color: #eee;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        z-index: 10;
+    }
+    .back-button:hover {
+        background-color: #777;
+    }
+    .container {
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 800px;
+        background-color: #444;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    h1, h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .form-container, .table-container {
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: #505050;
+        border-radius: 5px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-group select, .form-group input[type="number"], .form-group input[type="text"] {
+        width: calc(100% - 22px); /* Ajuste para padding */
+        padding: 10px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        box-sizing: border-box;
+        background-color: #333;
+        color: #eee;
+    }
+    .error-message, .success-message, .invalid-feedback { /* Añadido .invalid-feedback */
+        text-align: center;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    .error-message, .invalid-feedback { background-color: #721c24; color: #f8d7da; }
+    .success-message { background-color: #155724; color: #d4edda; }
+    button[type="submit"], .btn-action { /* Clase general para botones de acción */
+        background-color: #007bff; /* Azul */
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s ease;
+        margin-right: 10px; /* Espacio entre botones */
+    }
+    button[type="submit"]:hover, .btn-action:hover {
+        background-color: #0056b3;
+    }
+    .btn-edit { background-color: #ffc107; color: #333; } /* Amarillo */
+    .btn-save { background-color: #28a745; color: white; } /* Verde */
+    .btn-cancel { background-color: #dc3545; color: white; } /* Rojo */
+    .btn-delete { background-color: #dc3545; color: white; } /* Rojo para eliminar */
+
+    .btn-edit:hover { background-color: #e0a800; }
+    .btn-save:hover { background-color: #218838; }
+    .btn-cancel:hover, .btn-delete:hover { background-color: #c82333; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: #555;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+        border: 1px solid #666;
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #444;
+    }
+    tr:nth-child(even) {
+        background-color: #606060;
+    }
+    .edit-form-inline { /* Para el formulario de edición en línea */
+        display: none; /* Ocultar los formularios de edición inicialmente */
+        align-items: center; /* Alinea el input y los botones */
+        gap: 5px; /* Espacio entre elementos */
+    }
+    .edit-input-inline { /* Input de edición en línea */
+        width: 80px;
+        padding: 5px;
+        border: 1px solid #777;
+        border-radius: 3px;
+        background-color: #333;
+        color: #eee;
+    }
+    .action-cell { /* Para las celdas con botones de acción */
+        white-space: nowrap; /* Evita que los botones se rompan en varias líneas */
+    }
+  </style>
+</head>
+<body>
+<a href="/admin/dashboard" class="back-button">Volver</a> <div class="container">
+  <h1>Gestión de Descuentos</h1>
+
+  <div th:if="${mensajeExito}" class="success-message" th:text="${mensajeExito}"></div>
+  <div th:if="${errorGuardar}" class="error-message" th:text="${errorGuardar}"></div>
+  <div th:if="${errorActualizar}" class="error-message" th:text="${errorActualizar}"></div>
+  <div th:if="${errorEliminar}" class="error-message" th:text="${errorEliminar}"></div>
+  <div th:if="${errorEditar}" class="error-message" th:text="${errorEditar}"></div>
+
+  <div class="form-container">
+    <h2 th:text="${descuentoDTO.id == null ? 'Agregar Nuevo Descuento' : 'Editar Descuento'}"></h2>
+    <form th:action="${descuentoDTO.id == null ? '/admin/descuentos/guardar' : '/admin/descuentos/actualizar/' + descuentoDTO.id}"
+          th:object="${descuentoDTO}" method="post">
+      <input type="hidden" th:field="*{id}" th:if="${descuentoDTO.id != null}" />
+
+      <div class="form-group">
+        <label for="nombre">Nombre del Descuento:</label>
+        <input type="text" id="nombre" th:field="*{nombre}"
+               th:classappend="${#fields.hasErrors('nombre') ? 'is-invalid' : ''}">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+      </div>
+      <div class="form-group">
+        <label for="porcentaje">Porcentaje (ej. 0.10 para 10%):</label>
+        <input type="number" step="0.01" min="0.01" max="1.00" id="porcentaje"
+               th:field="*{porcentaje}" th:classappend="${#fields.hasErrors('porcentaje') ? 'is-invalid' : ''}">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('porcentaje')}" th:errors="*{porcentaje}"></div>
+      </div>
+      <button type="submit" th:text="${descuentoDTO.id == null ? 'Guardar Descuento' : 'Actualizar Descuento'}"></button>
+      <a th:if="${descuentoDTO.id != null}" th:href="@{/admin/descuentos}" class="btn-action btn-cancel">Cancelar Edición</a>
+    </form>
+  </div>
+
+  <div class="table-container">
+    <h2>Descuentos Existentes</h2>
+    <div th:if="${#lists.isEmpty(descuentos)}">
+      <p>No hay descuentos registrados.</p>
+    </div>
+    <table th:unless="${#lists.isEmpty(descuentos)}">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Porcentaje</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="descuento : ${descuentos}">
+        <td th:text="${descuento.id}"></td>
+        <td class="name-cell">
+          <span th:id="'nombre-' + ${descuento.id}" th:text="${descuento.nombre}"></span>
+          <form th:id="'form-nombre-' + ${descuento.id}" th:action="@{/admin/descuentos/actualizar/{id}(id=${descuento.id})}" method="post" style="display:none;" class="edit-form-inline">
+            <input type="text" class="edit-input-inline" name="nombre" th:value="${descuento.nombre}" required />
+            <input type="hidden" name="porcentaje" th:value="${descuento.porcentaje}" /> <button type="submit" class="btn-action btn-save">Guardar</button>
+            <button type="button" class="btn-action btn-cancel" th:onclick="'ocultarEditarDescuento(' + ${descuento.id} + ', \'nombre\')'">Cancelar</button>
+          </form>
+        </td>
+        <td class="price-cell">
+          <span th:id="'porcentaje-' + ${descuento.id}">
+            <span th:text="${#numbers.formatDecimal(descuento.porcentaje * 100, 0, 2) + '%'}"></span>
+            <button class="btn-action btn-edit" th:onclick="'mostrarEditarDescuento(' + ${descuento.id} + ', \'porcentaje\')'">Editar</button>
+          </span>
+          <form th:id="'form-porcentaje-' + ${descuento.id}" th:action="@{/admin/descuentos/actualizar/{id}(id=${descuento.id})}" method="post" style="display:none;" class="edit-form-inline">
+            <input type="number" step="0.01" min="0.01" max="1.00" class="edit-input-inline" name="porcentaje" th:value="${descuento.porcentaje}" required />
+            <input type="hidden" name="nombre" th:value="${descuento.nombre}" /> <button type="submit" class="btn-action btn-save">Guardar</button>
+            <button type="button" class="btn-action btn-cancel" th:onclick="'ocultarEditarDescuento(' + ${descuento.id} + ', \'porcentaje\')'">Cancelar</button>
+          </form>
+        </td>
+        <td class="action-cell">
+          <a th:href="@{/admin/descuentos/editar/{id}(id=${descuento.id})}" class="btn-action btn-edit">Editar Todo</a>
+          <form th:action="@{/admin/descuentos/eliminar/{id}(id=${descuento.id})}" method="post" style="display:inline;"
+                onsubmit="return confirm('¿Estás seguro de que quieres eliminar este descuento?');">
+            <button type="submit" class="btn-action btn-delete">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  // Función para mostrar el formulario de edición en línea
+  function mostrarEditarDescuento(descuentoId, campo) {
+      document.getElementById(campo + '-' + descuentoId).style.display = 'none';
+      document.getElementById('form-' + campo + '-' + descuentoId).style.display = 'flex'; // Usar flex para alinear
+  }
+
+  // Función para ocultar el formulario de edición en línea
+  function ocultarEditarDescuento(descuentoId, campo) {
+      document.getElementById(campo + '-' + descuentoId).style.display = 'inline';
+      document.getElementById('form-' + campo + '-' + descuentoId).style.display = 'none';
+  }
+  /*]]>*/
+</script>
+
+</body>
+</html>

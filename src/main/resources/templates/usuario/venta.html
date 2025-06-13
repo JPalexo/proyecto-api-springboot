@@ -75,7 +75,7 @@
         font-weight: bold;
         color: #ddd;
     }
-    .form-group select, .form-group input[type="number"] {
+    .form-group select, .form-group input[type="number"], .form-group input[type="text"] { /* Añadido input[type="text"] */
         width: calc(100% - 22px);
         padding: 10px;
         border: 1px solid #555;
@@ -119,9 +119,49 @@
         cursor: pointer;
         transition: background-color 0.3s ease;
         width: 100%;
+        margin-top: 10px; /* Espacio entre botones si hay varios */
     }
     button[type="submit"]:hover {
         background-color: #0056b3;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+    .btn-info {
+        background-color: #17a2b8;
+    }
+    .btn-info:hover {
+        background-color: #138496;
+    }
+    .table-container { /* Nuevo estilo para la tabla de descuentos */
+        background-color: #555;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        padding: 10px;
+        border: 1px solid #666;
+        text-align: left;
+        color: #ddd;
+    }
+    th {
+        background-color: #666;
+        color: #fff;
     }
   </style>
 </head>
@@ -150,27 +190,47 @@
   </form>
 
   <div th:if="${ciudadSeleccionada != null}">
-    <form th:action="@{/usuario/obtener-tarifa}" method="post" class="form-group">
-      <label for="rutaSeleccionada">Seleccionar Ruta:</label>
-      <select id="rutaSeleccionada" name="rutaSeleccionada" onchange="this.form.submit()">
-        <option value="" disabled selected>Seleccionar Ruta</option>
-        <option th:each="ruta : ${rutas}" th:value="${ruta.id}" th:text="${ruta.nombreRuta}"
-                th:selected="${ruta.id == rutaSeleccionadaId}"></option>
-      </select>
-      <input type="hidden" name="ciudadSeleccionada" th:value="${ciudadSeleccionada}" />
+    <form th:action="@{/usuario/obtener-tarifa}" method="post" id="formObtenerTarifa">
+      <div class="form-group">
+        <label for="rutaSeleccionada">Seleccionar Ruta:</label>
+        <select id="rutaSeleccionada" name="rutaSeleccionada" onchange="this.form.submit()">
+          <option value="" disabled selected>Seleccionar Ruta</option>
+          <option th:each="ruta : ${rutas}" th:value="${ruta.id}" th:text="${ruta.nombreRuta}"
+                  th:selected="${ruta.id == rutaSeleccionadaId}"></option>
+        </select>
+        <input type="hidden" name="ciudadSeleccionada" th:value="${ciudadSeleccionada}" />
+      </div>
+
+      <div class="form-group">
+        <label for="descuentoSeleccionado">Aplicar Descuento:</label>
+        <select class="form-control" id="descuentoSeleccionado" name="descuentoSeleccionado">
+          <option value="">Seleccione un descuento (Ninguno)</option>
+          <option th:each="desc : ${descuentos}"
+                  th:value="${desc.id}"
+                  th:text="${desc.nombre + ' (' + #numbers.formatDecimal(desc.porcentaje * 100, 0, 0) + '%)'}"
+                  th:selected="${descuentoSeleccionadoId != null and desc.id == descuentoSeleccionadoId}">
+          </option>
+        </select>
+      </div>
     </form>
   </div>
 
   <div th:if="${tarifa != null}" class="output-group">
-    <label>Tarifa de la Ruta:</label>
+    <label>Tarifa Original:</label>
     <span th:text="${#numbers.formatDecimal(tarifa, 0, 'COMMA', 2, 'POINT')}"></span>
   </div>
 
-  <form th:if="${tarifa != null}" th:action="@{/usuario/calcular-cambio}" method="post" class="form-group">
+  <div th:if="${tarifaConDescuento != null and tarifaConDescuento != tarifa}" class="output-group">
+    <label>Tarifa con Descuento:</label>
+    <span th:text="${#numbers.formatDecimal(tarifaConDescuento, 0, 'COMMA', 2, 'POINT')}"></span>
+  </div>
+
+  <form th:if="${tarifaConDescuento != null}" th:action="@{/usuario/calcular-cambio}" method="post" class="form-group">
     <label for="montoRecibido">Monto Recibido:</label>
-    <input type="number" step="0.01" id="montoRecibido" name="montoRecibido" required />
+    <input type="number" step="0.01" id="montoRecibido" name="montoRecibido" th:value="${montoRecibido}" required />
     <input type="hidden" name="rutaSeleccionadaId" th:value="${rutaSeleccionadaId}" />
     <input type="hidden" name="ciudadSeleccionada" th:value="${ciudadSeleccionada}" />
+    <input type="hidden" name="descuentoSeleccionadoId" th:value="${descuentoSeleccionadoId}" />
     <button type="submit">Calcular Cambio</button>
   </form>
 
@@ -183,9 +243,30 @@
     <input type="hidden" name="rutaSeleccionadaId" th:value="${rutaSeleccionadaId}" />
     <input type="hidden" name="montoRecibido" th:value="${montoRecibido}" />
     <input type="hidden" name="ciudadSeleccionada" th:value="${ciudadSeleccionada}" />
+    <input type="hidden" name="descuentoSeleccionadoId" th:value="${descuentoSeleccionadoId}" />
     <button type="submit">Registrar Venta</button>
   </form>
 
 </div>
+
+<script>
+  // Script para que el formulario de tarifa se envíe al seleccionar ruta O descuento
+  document.addEventListener('DOMContentLoaded', function() {
+      const rutaSelect = document.getElementById('rutaSeleccionada');
+      const descuentoSelect = document.getElementById('descuentoSeleccionado');
+      const formTarifa = document.getElementById('formObtenerTarifa');
+
+      if (rutaSelect && formTarifa) { // Solo si rutaSelect existe
+          rutaSelect.addEventListener('change', function() {
+              formTarifa.submit();
+          });
+      }
+      if (descuentoSelect && formTarifa) { // Solo si descuentoSelect existe
+          descuentoSelect.addEventListener('change', function() {
+              formTarifa.submit();
+          });
+      }
+  });
+</script>
 </body>
 </html>

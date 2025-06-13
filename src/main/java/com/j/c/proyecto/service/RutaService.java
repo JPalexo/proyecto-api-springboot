@@ -1,7 +1,6 @@
 package com.j.c.proyecto.service;
 
 import com.j.c.proyecto.dto.RutaDTO;
-import com.j.c.proyecto.exception.RutaEnUsoException;
 import com.j.c.proyecto.exception.RutaExistenteException;
 import com.j.c.proyecto.exception.RutaNoEncontradaException;
 import com.j.c.proyecto.model.Ruta;
@@ -52,18 +51,6 @@ public class RutaService {
         Ruta ruta = rutaRepository.findById(id)
                 .orElseThrow(() -> new RutaNoEncontradaException(id));
 
-        // Verificar si la ruta está siendo utilizada
-        if (rutaEstaEnUso(ruta)) {
-            throw new RutaEnUsoException(id);
-        }
-
         rutaRepository.delete(ruta);
-    }
-
-    private boolean rutaEstaEnUso(Ruta ruta) {
-        // Implementa la lógica para verificar si la ruta está siendo usada
-        // Por ejemplo, verificar si hay ventas o tarifas asociadas
-        // return ventaRepository.existsByRuta(ruta) || tarifaRepository.existsByRuta(ruta);
-        return false; // Cambiar por implementación real
     }
 }
