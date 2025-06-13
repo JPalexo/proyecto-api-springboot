@@ -2,8 +2,8 @@ package com.j.c.proyecto.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor; // Agregar si no lo tenías para el constructor por defecto
-import lombok.AllArgsConstructor; // Agregar si no lo tenías para el constructor con todos los args
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +19,7 @@ public class Venta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Añadí LAZY para optimización
     @JoinColumn(name = "ruta_id", nullable = false)
     private Ruta ruta;
 
@@ -37,16 +37,20 @@ public class Venta {
     private LocalDateTime fechaVenta;
 
     // Nuevo: Campo para el descuento aplicado (puede ser nulo si no se aplicó descuento)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Añadí LAZY para optimización
     @JoinColumn(name = "descuento_id", nullable = true) // nullable = true si el descuento es opcional
     private Descuento descuentoAplicado;
 
     @PrePersist
     public void prePersist() {
-        fechaVenta = LocalDateTime.now();
+        // Asegúrate de que fechaVenta se establezca solo si no ha sido establecida manualmente
+        if (fechaVenta == null) {
+            fechaVenta = LocalDateTime.now();
+        }
     }
 
     // Constructor actualizado para incluir el descuento
+    // Lombok @AllArgsConstructor ya genera uno similar, pero este puede ser útil si manejas nulls
     public Venta(Ruta ruta, BigDecimal tarifa, BigDecimal montoRecibido, BigDecimal cambio, Descuento descuentoAplicado) {
         this.ruta = ruta;
         this.tarifa = tarifa;

@@ -1,0 +1,10 @@
+--- Detalles de la Venta ---
+ID de Venta: 6
+Fecha y Hora: 13/06/2025 06:11:40
+Ruta: FCQ - ITO
+Tarifa Original (Base de Ruta): 13.00 MXN
+Descuento Aplicado: Ninguno
+Tarifa Final (con o sin descuento): 13.00 MXN
+Monto Recibido: 20 MXN
+Cambio: 7.00 MXN
+----------------------------
